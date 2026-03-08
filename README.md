@@ -1,4 +1,4 @@
-# MediSlot (Appointy)
+# MediSlot
 
 A full-stack **doctor appointment booking platform** that enables patients to book appointments with doctors, supports online and cash payments (Razorpay), and provides separate dashboards for admins, doctors, and patients.
 
@@ -324,7 +324,7 @@ Tokens are stored in `localStorage` on the client and sent with each authenticat
 
 ### Backend (`.env`)
 ```env
-MONGO_URI=mongodb://localhost:27017/appointy
+MONGO_URI=mongodb://localhost:27017/medislot
 JWT_SECRET=your_jwt_secret
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=your_admin_password
