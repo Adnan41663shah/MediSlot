@@ -11,6 +11,8 @@ const MyAppointments = () => {
   const navigate = useNavigate()
   const [appointments, setAppointments] = useState([])
   const [payment, setPayment] = useState('')
+  const [cancellingId, setCancellingId] = useState(null)
+  const [payingId, setPayingId] = useState(null)
 
   const months = [" ", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -32,28 +34,24 @@ const MyAppointments = () => {
     }
   }
 
-  // Function to cancel appointment Using API
   const cancelAppointment = async (appointmentId) => {
-
+    if (cancellingId) return
+    setCancellingId(appointmentId)
     try {
-
       const { data } = await axios.post(backendUrl + '/api/user/cancel-appointment', { appointmentId }, { headers: { token } })
-
       if (data.success) {
         toast.success(data.message)
-        // Optimistic UI update - hide buttons immediately
         setAppointments(prev => prev.map(a => a._id === appointmentId ? { ...a, cancelled: true } : a))
         getUserAppointments()
         getDoctorsData()
       } else {
         toast.error(data.message || 'Could not cancel appointment.')
       }
-
     } catch (error) {
-      console.log(error)
       toast.error(getErrorMessage(error))
+    } finally {
+      setCancellingId(null)
     }
-
   }
 
   const initPay = (order) => {
@@ -90,8 +88,9 @@ const MyAppointments = () => {
     rzp.open();
   }
 
-  // Function to make payment using razorpay
   const appointmentRazorpay = async (appointmentId) => {
+    if (payingId) return
+    setPayingId(appointmentId)
     try {
       const { data } = await axios.post(backendUrl + '/api/user/payment-razorpay', { appointmentId }, { headers: { token } })
       if (data.success) {
@@ -100,8 +99,9 @@ const MyAppointments = () => {
         toast.error(data.message || 'Could not process payment.')
       }
     } catch (error) {
-      console.log(error)
       toast.error(getErrorMessage(error))
+    } finally {
+      setPayingId(null)
     }
   }
 
@@ -136,11 +136,11 @@ const MyAppointments = () => {
             </div>
             <div className='flex flex-wrap gap-2 sm:flex-col sm:min-w-[140px]'>
               {!item.cancelled && !item.payment && !item.isCompleted && payment !== item._id && (
-                <button onClick={() => setPayment(item._id)} className='btn-secondary text-sm py-2'>Pay Online</button>
+                <button onClick={() => setPayment(item._id)} disabled={!!cancellingId || !!payingId} className='btn-secondary text-sm py-2 disabled:opacity-70 disabled:cursor-not-allowed'>Pay Online</button>
               )}
               {!item.cancelled && !item.payment && !item.isCompleted && payment === item._id && (
-                <button onClick={() => appointmentRazorpay(item._id)} className='flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-stone-200 hover:border-primary/50'>
-                  <img className='h-5' src={assets.razorpay_logo} alt="Razorpay" />
+                <button onClick={() => appointmentRazorpay(item._id)} disabled={!!payingId} className='flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-stone-200 hover:border-primary/50 disabled:opacity-70 disabled:cursor-not-allowed'>
+                  {payingId === item._id ? 'Loading...' : <img className='h-5' src={assets.razorpay_logo} alt="Razorpay" />}
                 </button>
               )}
               {!item.cancelled && item.payment && !item.isCompleted && (
@@ -150,7 +150,7 @@ const MyAppointments = () => {
                 <span className='inline-flex items-center px-4 py-2 rounded-xl border border-emerald-500 text-emerald-600 text-sm font-medium'>Completed</span>
               )}
               {!item.cancelled && !item.isCompleted && (
-                <button onClick={() => cancelAppointment(item._id)} className='text-sm py-2 px-4 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors'>Cancel</button>
+                <button onClick={() => cancelAppointment(item._id)} disabled={!!cancellingId} className='text-sm py-2 px-4 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-70 disabled:cursor-not-allowed'>{cancellingId === item._id ? 'Cancelling...' : 'Cancel'}</button>
               )}
               {item.cancelled && !item.isCompleted && (
                 <span className='inline-flex items-center px-4 py-2 rounded-xl border border-red-200 text-red-600 text-sm'>Cancelled</span>

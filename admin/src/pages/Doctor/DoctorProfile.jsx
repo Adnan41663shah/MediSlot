@@ -7,13 +7,14 @@ import axios from 'axios'
 const DoctorProfile = () => {
 
     const { dToken, profileData, setProfileData, getProfileData, backendUrl } = useContext(DoctorContext)
-    const { currency} = useContext(AppContext)
+    const { currency } = useContext(AppContext)
     const [isEdit, setIsEdit] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
 
     const updateProfile = async () => {
-
+        if (submitting) return
+        setSubmitting(true)
         try {
-
             const updateData = {
                 address: profileData.address,
                 fees: profileData.fees,
@@ -30,14 +31,11 @@ const DoctorProfile = () => {
             } else {
                 toast.error(data.message)
             }
-
-            setIsEdit(false)
-
         } catch (error) {
             toast.error(error.message)
-            console.log(error)
+        } finally {
+            setSubmitting(false)
         }
-
     }
 
     useEffect(() => {
@@ -57,7 +55,7 @@ const DoctorProfile = () => {
                     <p className='text-text-secondary mt-4'>Appointment fee: <span className='font-semibold text-text-primary'>{currency}{isEdit ? <input type='number' onChange={(e) => setProfileData(prev => ({ ...prev, fees: e.target.value }))} value={profileData.fees} className='input-field w-24 inline-block' /> : profileData.fees}</span></p>
                     <div className='mt-4'><label className='block text-sm font-medium text-text-primary mb-2'>Address</label>{isEdit ? <div className='space-y-2'><input className='input-field' type='text' onChange={(e) => setProfileData(prev => ({ ...prev, address: { ...(prev.address || {}), line1: e.target.value } }))} value={profileData.address?.line1} /><input className='input-field' type='text' onChange={(e) => setProfileData(prev => ({ ...prev, address: { ...(prev.address || {}), line2: e.target.value } }))} value={profileData.address?.line2} /></div> : <p className='text-text-secondary text-sm'>{profileData.address?.line1}<br />{profileData.address?.line2}</p>}</div>
                     <label className='mt-4 flex items-center gap-2 cursor-pointer'><input type="checkbox" onChange={() => isEdit && setProfileData(prev => ({ ...prev, available: !prev.available }))} checked={profileData.available} className='rounded border-stone-300 text-primary' /><span className='text-text-muted text-sm'>Available for appointments</span></label>
-                    <div className='mt-6'>{isEdit ? <button onClick={updateProfile} className='btn-primary'>Save Changes</button> : <button onClick={() => setIsEdit(true)} className='btn-secondary'>Edit Profile</button>}</div>
+                    <div className='mt-6'>{isEdit ? <button onClick={updateProfile} disabled={submitting} className='btn-primary disabled:opacity-70 disabled:cursor-not-allowed'>{submitting ? 'Saving...' : 'Save Changes'}</button> : <button onClick={() => setIsEdit(true)} className='btn-secondary'>Edit Profile</button>}</div>
                 </div>
             </div>
         </div>

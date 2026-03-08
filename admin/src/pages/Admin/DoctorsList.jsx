@@ -6,6 +6,18 @@ const DoctorsList = () => {
   const navigate = useNavigate()
   const { doctors, aToken, getAllDoctors, changeAvailability, deleteDoctor } = useContext(AdminContext)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const [availabilityId, setAvailabilityId] = useState(null)
+  const [deletingId, setDeletingId] = useState(null)
+
+  const handleAvailabilityChange = async (docId) => {
+    if (availabilityId) return
+    setAvailabilityId(docId)
+    try {
+      await changeAvailability(docId)
+    } finally {
+      setAvailabilityId(null)
+    }
+  }
 
   useEffect(() => {
     if (aToken) {
@@ -15,8 +27,14 @@ const DoctorsList = () => {
 
   const handleDelete = async (item) => {
     if (deleteConfirm === item._id) {
-      const success = await deleteDoctor(item._id)
-      if (success) setDeleteConfirm(null)
+      if (deletingId) return
+      setDeletingId(item._id)
+      try {
+        const success = await deleteDoctor(item._id)
+        if (success) setDeleteConfirm(null)
+      } finally {
+        setDeletingId(null)
+      }
     } else {
       setDeleteConfirm(item._id)
       setTimeout(() => setDeleteConfirm(null), 3000)
@@ -35,16 +53,16 @@ const DoctorsList = () => {
             <div className='p-4'>
               <p className='font-semibold text-text-primary'>{item.name}</p>
               <p className='text-text-secondary text-sm'>{item.speciality}</p>
-              <label className='mt-3 flex items-center gap-2 cursor-pointer text-sm'>
-                <input onChange={() => changeAvailability(item._id)} type="checkbox" checked={item.available} className='rounded border-stone-300 text-primary focus:ring-primary' />
-                <span className='text-text-muted'>Available</span>
+              <label className={`mt-3 flex items-center gap-2 text-sm ${availabilityId === item._id ? 'cursor-wait opacity-70' : 'cursor-pointer'}`}>
+                <input onChange={() => handleAvailabilityChange(item._id)} type="checkbox" checked={item.available} disabled={!!availabilityId} className='rounded border-stone-300 text-primary focus:ring-primary disabled:cursor-not-allowed' />
+                <span className='text-text-muted'>{availabilityId === item._id ? 'Updating...' : 'Available'}</span>
               </label>
               <div className='flex gap-2 mt-4'>
                 <button onClick={() => navigate(`/edit-doctor/${item._id}`)} className='flex-1 px-3 py-2 rounded-lg border border-stone-200 text-sm font-medium text-text-secondary hover:bg-primary-muted hover:text-primary hover:border-primary/30 transition-colors'>
                   Edit
                 </button>
-                <button onClick={() => handleDelete(item)} className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${deleteConfirm === item._id ? 'bg-red-500 text-white hover:bg-red-600' : 'border border-red-200 text-red-600 hover:bg-red-50'}`}>
-                  {deleteConfirm === item._id ? 'Confirm Delete' : 'Delete'}
+                <button onClick={() => handleDelete(item)} disabled={!!deletingId} className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${deleteConfirm === item._id ? 'bg-red-500 text-white hover:bg-red-600' : 'border border-red-200 text-red-600 hover:bg-red-50'}`}>
+                  {deletingId === item._id ? 'Deleting...' : deleteConfirm === item._id ? 'Confirm Delete' : 'Delete'}
                 </button>
               </div>
             </div>

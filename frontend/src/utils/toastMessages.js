@@ -11,6 +11,11 @@ export const getErrorMessage = (error) => {
     return 'Unable to connect. Please check your internet connection and try again.'
   }
 
+  // Validation errors (e.g. Mongoose "Path X is required")
+  if (lower.includes('validation failed') || lower.includes('path ') && lower.includes(' is required')) {
+    return 'Please complete all required fields and try again.'
+  }
+
   // Auth / session
   if (lower.includes('session expired') || lower.includes('log in again') || error?.response?.status === 401) {
     return 'Your session has expired. Please log in again.'

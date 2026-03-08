@@ -17,6 +17,7 @@ const Appointment = () => {
   const [docSlots, setDocSlots] = useState([])
   const [slotIndex, setSlotIndex] = useState(0)
   const [slotTime, setSlotTime] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const fetchDocInfo = async () => {
     const doc = doctors.find((doc) => doc._id === docId)
@@ -80,22 +81,24 @@ const Appointment = () => {
   }
 
   const bookAppointment = async () => {
-
+    if (submitting) return
     if (!token) {
       toast.warning('Please sign in to book an appointment')
       return navigate('/login')
     }
+    if (!slotTime) {
+      toast.warning('Please select a time slot for your appointment')
+      return
+    }
 
     const date = docSlots[slotIndex][0].datetime
-  
     let day = date.getDate()
     let month = date.getMonth() + 1
     let year = date.getFullYear()
-
     const slotDate = day + "_" + month + "_" + year
 
+    setSubmitting(true)
     try {
-
       const { data } = await axios.post(backendUrl + '/api/user/book-appointment', { docId, slotDate, slotTime }, { headers: { token } })
       if (data.success) {
         toast.success(data.message)
@@ -106,10 +109,10 @@ const Appointment = () => {
       }
 
     } catch (error) {
-      console.log(error)
       toast.error(getErrorMessage(error))
+    } finally {
+      setSubmitting(false)
     }
-
   }
 
   useEffect(() => {
@@ -171,8 +174,8 @@ const Appointment = () => {
               </button>
             ))}
           </div>
-          <button onClick={bookAppointment} className='btn-primary mt-8'>
-            Confirm & Book Appointment
+          <button onClick={bookAppointment} disabled={submitting} className='btn-primary mt-8 disabled:opacity-70 disabled:cursor-not-allowed'>
+            {submitting ? 'Booking...' : 'Confirm & Book Appointment'}
           </button>
         </div>
 

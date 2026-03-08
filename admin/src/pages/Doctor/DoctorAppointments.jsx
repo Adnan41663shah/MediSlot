@@ -1,13 +1,33 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useContext, useEffect } from 'react'
 import { DoctorContext } from '../../context/DoctorContext'
 import { AppContext } from '../../context/AppContext'
 import { assets } from '../../assets/assets'
 
 const DoctorAppointments = () => {
-
+  const [actioningId, setActioningId] = useState(null)
   const { dToken, appointments, getAppointments, cancelAppointment, completeAppointment } = useContext(DoctorContext)
   const { slotDateFormat, calculateAge, currency } = useContext(AppContext)
+
+  const handleCancel = async (id) => {
+    if (actioningId) return
+    setActioningId(id)
+    try {
+      await cancelAppointment(id)
+    } finally {
+      setActioningId(null)
+    }
+  }
+
+  const handleComplete = async (id) => {
+    if (actioningId) return
+    setActioningId(id)
+    try {
+      await completeAppointment(id)
+    } finally {
+      setActioningId(null)
+    }
+  }
 
   useEffect(() => {
     if (dToken) {
@@ -31,7 +51,7 @@ const DoctorAppointments = () => {
               <span className='max-sm:hidden'>{calculateAge(item.userData.dob)}</span>
               <span>{slotDateFormat(item.slotDate)}, {item.slotTime}</span>
               <span>{currency}{item.amount}</span>
-              {item.cancelled ? <span className='px-2 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-medium'>Cancelled</span> : item.isCompleted ? <span className='px-2 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-medium'>Completed</span> : <div className='flex gap-1'><button onClick={() => cancelAppointment(item._id)} className='p-2 rounded-lg hover:bg-red-50'><img className='w-6' src={assets.cancel_icon} alt="Cancel" /></button><button onClick={() => completeAppointment(item._id)} className='p-2 rounded-lg hover:bg-emerald-50'><img className='w-6' src={assets.tick_icon} alt="Complete" /></button></div>}
+              {item.cancelled ? <span className='px-2 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-medium'>Cancelled</span> : item.isCompleted ? <span className='px-2 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-medium'>Completed</span> : <div className='flex gap-1'><button onClick={() => handleCancel(item._id)} disabled={!!actioningId} className='p-2 rounded-lg hover:bg-red-50 disabled:opacity-70 disabled:cursor-not-allowed' title="Cancel"><img className='w-6' src={assets.cancel_icon} alt="Cancel" /></button><button onClick={() => handleComplete(item._id)} disabled={!!actioningId} className='p-2 rounded-lg hover:bg-emerald-50 disabled:opacity-70 disabled:cursor-not-allowed' title="Complete"><img className='w-6' src={assets.tick_icon} alt="Complete" /></button></div>}
             </div>
           ))}
         </div>

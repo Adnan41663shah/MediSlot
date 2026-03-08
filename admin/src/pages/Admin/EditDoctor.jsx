@@ -21,6 +21,7 @@ const EditDoctor = () => {
   const [address1, setAddress1] = useState('')
   const [address2, setAddress2] = useState('')
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
   const doctor = doctors.find(d => d._id === docId)
 
@@ -50,11 +51,13 @@ const EditDoctor = () => {
 
   const onSubmitHandler = async (e) => {
     e.preventDefault()
+    if (submitting) return
     if (!name || !email || !speciality || !degree || !fees) {
       toast.error('Please fill required fields')
       return
     }
 
+    setSubmitting(true)
     const formData = new FormData()
     formData.append('name', name)
     formData.append('email', email)
@@ -67,8 +70,12 @@ const EditDoctor = () => {
     formData.append('address', JSON.stringify({ line1: address1, line2: address2 }))
     if (docImg) formData.append('image', docImg)
 
-    const success = await updateDoctor(docId, formData)
-    if (success) navigate('/doctor-list')
+    try {
+      const success = await updateDoctor(docId, formData)
+      if (success) navigate('/doctor-list')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (loading || !doctor) {
@@ -114,8 +121,8 @@ const EditDoctor = () => {
         </div>
 
         <div className='flex gap-3 mt-8'>
-          <button type='button' onClick={() => navigate('/doctor-list')} className='btn-secondary'>Cancel</button>
-          <button type='submit' className='btn-primary'>Save Changes</button>
+          <button type='button' onClick={() => navigate('/doctor-list')} disabled={submitting} className='btn-secondary disabled:opacity-70 disabled:cursor-not-allowed'>Cancel</button>
+          <button type='submit' disabled={submitting} className='btn-primary disabled:opacity-70 disabled:cursor-not-allowed'>{submitting ? 'Saving...' : 'Save Changes'}</button>
         </div>
       </div>
     </form>

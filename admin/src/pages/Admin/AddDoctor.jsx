@@ -6,7 +6,7 @@ import { AdminContext } from '../../context/AdminContext'
 import { AppContext } from '../../context/AppContext'
 
 const AddDoctor = () => {
-
+  const [submitting, setSubmitting] = useState(false)
   const [docImg, setDocImg] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -24,12 +24,14 @@ const AddDoctor = () => {
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
+    if (submitting) return
 
     try {
       if (!docImg) {
         return toast.error('Image Not Selected');
       }
 
+      setSubmitting(true)
       const formData = new FormData();
 
       formData.append('image', docImg);
@@ -43,14 +45,9 @@ const AddDoctor = () => {
       formData.append('degree', degree);
       formData.append('address', JSON.stringify({ line1: address1, line2: address2 }));
 
-      // Debugging FormData (optional, can remove later)
-      formData.forEach((value, key) => {
-        console.log(`${key}: ${value}`);
-      });
-
       const response = await axios.post(`${backendUrl}/api/admin/add-doctor`, formData, {
-        headers: { aToken}  })
-      const data= response.data;
+        headers: { aToken } })
+      const data = response.data;
       if (data.success) {
                 toast.success(data.message)
                 setDocImg(false)
@@ -68,7 +65,8 @@ const AddDoctor = () => {
 
     } catch (error) {
       toast.error(error?.response?.data?.message || error.message);
-      console.error(error);
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -107,7 +105,9 @@ const AddDoctor = () => {
           <textarea onChange={e => setAbout(e.target.value)} value={about} className='input-field min-h-[120px]' rows={4} placeholder='Brief description of the doctor...'></textarea>
         </div>
 
-        <button type='submit' className='btn-primary mt-8'>Add Doctor</button>
+        <button type='submit' disabled={submitting} className='btn-primary mt-8 disabled:opacity-70 disabled:cursor-not-allowed'>
+          {submitting ? 'Adding...' : 'Add Doctor'}
+        </button>
       </div>
     </form>
   )

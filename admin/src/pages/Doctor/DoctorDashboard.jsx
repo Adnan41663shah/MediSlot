@@ -1,15 +1,33 @@
-import React from 'react'
-import { useContext } from 'react'
-import { useEffect } from 'react'
+import React, { useState } from 'react'
+import { useContext, useEffect } from 'react'
 import { DoctorContext } from '../../context/DoctorContext'
 import { assets } from '../../assets/assets'
 import { AppContext } from '../../context/AppContext'
 
 const DoctorDashboard = () => {
-
+  const [actioningId, setActioningId] = useState(null)
   const { dToken, dashData, getDashData, cancelAppointment, completeAppointment } = useContext(DoctorContext)
   const { slotDateFormat, currency } = useContext(AppContext)
 
+  const handleCancel = async (id) => {
+    if (actioningId) return
+    setActioningId(id)
+    try {
+      await cancelAppointment(id)
+    } finally {
+      setActioningId(null)
+    }
+  }
+
+  const handleComplete = async (id) => {
+    if (actioningId) return
+    setActioningId(id)
+    try {
+      await completeAppointment(id)
+    } finally {
+      setActioningId(null)
+    }
+  }
 
   useEffect(() => {
 
@@ -34,7 +52,7 @@ const DoctorDashboard = () => {
             <div className='flex items-center px-6 py-4 gap-4 hover:bg-stone-50/50' key={index}>
               <img className='rounded-xl w-12 h-12 object-cover' src={item.userData.image} alt="" />
               <div className='flex-1'><p className='font-medium text-text-primary'>{item.userData.name}</p><p className='text-text-muted text-sm'>{slotDateFormat(item.slotDate)}</p></div>
-              {item.cancelled ? <span className='px-3 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-medium'>Cancelled</span> : item.isCompleted ? <span className='px-3 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-medium'>Completed</span> : <div className='flex gap-1'><button onClick={() => cancelAppointment(item._id)} className='p-2 rounded-lg hover:bg-red-50'><img className='w-6' src={assets.cancel_icon} alt="Cancel" /></button><button onClick={() => completeAppointment(item._id)} className='p-2 rounded-lg hover:bg-emerald-50'><img className='w-6' src={assets.tick_icon} alt="Complete" /></button></div>}
+              {item.cancelled ? <span className='px-3 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-medium'>Cancelled</span> : item.isCompleted ? <span className='px-3 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-medium'>Completed</span> : <div className='flex gap-1'><button onClick={() => handleCancel(item._id)} disabled={!!actioningId} className='p-2 rounded-lg hover:bg-red-50 disabled:opacity-70 disabled:cursor-not-allowed' title="Cancel"><img className='w-6' src={assets.cancel_icon} alt="Cancel" /></button><button onClick={() => handleComplete(item._id)} disabled={!!actioningId} className='p-2 rounded-lg hover:bg-emerald-50 disabled:opacity-70 disabled:cursor-not-allowed' title="Complete"><img className='w-6' src={assets.tick_icon} alt="Complete" /></button></div>}
             </div>
           ))}
         </div>

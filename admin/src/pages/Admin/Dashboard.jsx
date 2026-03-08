@@ -1,12 +1,23 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useState } from 'react'
+import { useContext, useEffect } from 'react'
 import { assets } from '../../assets/assets'
 import { AdminContext } from '../../context/AdminContext'
 import { AppContext } from '../../context/AppContext'
 
 const Dashboard = () => {
-
+  const [actioningId, setActioningId] = useState(null)
   const { aToken, getDashData, cancelAppointment, dashData } = useContext(AdminContext)
   const { slotDateFormat } = useContext(AppContext)
+
+  const handleCancel = async (id) => {
+    if (actioningId) return
+    setActioningId(id)
+    try {
+      await cancelAppointment(id)
+    } finally {
+      setActioningId(null)
+    }
+  }
 
   useEffect(() => {
     if (aToken) {
@@ -54,7 +65,7 @@ const Dashboard = () => {
                 <p className='font-medium text-text-primary'>{item.docData.name}</p>
                 <p className='text-text-muted text-sm'>{slotDateFormat(item.slotDate)}</p>
               </div>
-              {item.cancelled ? <span className='px-3 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-medium'>Cancelled</span> : item.isCompleted ? <span className='px-3 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-medium'>Completed</span> : <button onClick={() => cancelAppointment(item._id)} className='p-2 rounded-lg hover:bg-red-50'><img className='w-6' src={assets.cancel_icon} alt="Cancel" /></button>}
+              {item.cancelled ? <span className='px-3 py-1 rounded-lg bg-red-50 text-red-600 text-xs font-medium'>Cancelled</span> : item.isCompleted ? <span className='px-3 py-1 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-medium'>Completed</span> : <button onClick={() => handleCancel(item._id)} disabled={!!actioningId} className='p-2 rounded-lg hover:bg-red-50 disabled:opacity-70 disabled:cursor-not-allowed' title="Cancel"><img className='w-6' src={assets.cancel_icon} alt="Cancel" /></button>}
             </div>
           ))}
         </div>

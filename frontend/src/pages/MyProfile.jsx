@@ -9,10 +9,13 @@ import { assets } from '../assets/assets'
 const MyProfile = () => {
     const [isEdit, setIsEdit] = useState(false)
     const [image, setImage] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
 
     const { token, backendUrl, userData, setUserData, loadUserProfileData } = useContext(AppContext)
 
     const updateUserProfileData = async () => {
+        if (submitting) return
+        setSubmitting(true)
         try {
             const formData = new FormData()
             formData.append('name', userData.name)
@@ -33,8 +36,9 @@ const MyProfile = () => {
                 toast.error(data.message || 'Could not update profile.')
             }
         } catch (error) {
-            console.log(error)
             toast.error(getErrorMessage(error))
+        } finally {
+            setSubmitting(false)
         }
     }
 
@@ -109,14 +113,16 @@ const MyProfile = () => {
                                     <button
                                         type="button"
                                         onClick={updateUserProfileData}
-                                        className="px-5 py-2.5 rounded-xl bg-white text-primary font-semibold text-sm hover:bg-white/95 transition-colors"
+                                        disabled={submitting}
+                                        className="px-5 py-2.5 rounded-xl bg-white text-primary font-semibold text-sm hover:bg-white/95 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
-                                        Save Changes
+                                        {submitting ? 'Saving...' : 'Save Changes'}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => { setIsEdit(false); setImage(false) }}
-                                        className="px-5 py-2.5 rounded-xl border border-white/40 text-white text-sm font-medium hover:bg-white/10 transition-colors"
+                                        disabled={submitting}
+                                        className="px-5 py-2.5 rounded-xl border border-white/40 text-white text-sm font-medium hover:bg-white/10 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         Cancel
                                     </button>
@@ -260,12 +266,13 @@ const MyProfile = () => {
                     <button
                         type="button"
                         onClick={() => { setIsEdit(false); setImage(false) }}
-                        className="btn-secondary py-3"
+                        disabled={submitting}
+                        className="btn-secondary py-3 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
                         Cancel
                     </button>
-                    <button type="button" onClick={updateUserProfileData} className="btn-primary py-3">
-                        Save Changes
+                    <button type="button" onClick={updateUserProfileData} disabled={submitting} className="btn-primary py-3 disabled:opacity-70 disabled:cursor-not-allowed">
+                        {submitting ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
             )}
