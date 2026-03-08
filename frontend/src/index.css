@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  @apply bg-surface-warm text-text-primary antialiased;
+  overflow-x: hidden;
+}
+
+.active hr {
+  @apply block;
+}
+
+@media (max-width: 740px) {
+  .active p {
+    @apply text-white bg-primary;
+  }
+}
+
+::-webkit-scrollbar {
+  @apply hidden;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-accent text-white px-6 py-3 rounded-xl font-medium shadow-soft
+           hover:bg-accent-hover transition-all duration-300 hover:shadow-card-hover
+           active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply bg-primary text-white px-6 py-3 rounded-xl font-medium
+           hover:bg-primary-dark transition-all duration-300;
+  }
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl border border-stone-200
+           focus:ring-2 focus:ring-primary/20 focus:border-primary
+           transition-all outline-none;
+  }
+  .card {
+    @apply bg-surface-card rounded-2xl shadow-card border border-stone-100
+           hover:shadow-card-hover transition-all duration-300;
+  }
+}
