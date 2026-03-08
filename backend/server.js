@@ -18,11 +18,11 @@ connectCloudinary()
 // middlewares
 app.use(express.json())
 app.use(cors({
-  origin:[
+  origin: [
     'http://localhost:5173',
     'http://localhost:5174',
-    'https://medislot-admin.vercel.app/',   // admin url
-    'https://medislot-tau.vercel.app/'      // frontend url
+    'https://medislot-admin.vercel.app',   // admin url
+    'https://medislot-tau.vercel.app'      // frontend url
   ],
   credentials: true,
 }))
