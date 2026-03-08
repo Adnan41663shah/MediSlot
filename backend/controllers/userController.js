@@ -207,7 +207,7 @@ const updateProfile = async (req, res) => {
             return res.json({ success: false, message: "Data Missing" })
         }
 
-        await userModel.findByIdAndUpdate(userId, { name, phone, address: JSON.parse(address), dob, gender })
+        await userModel.findByIdAndUpdate(userId, { name, phone, address: JSON.parse(address || '{}'), dob, gender })
 
         if (imageFile) {
 
@@ -216,6 +216,15 @@ const updateProfile = async (req, res) => {
             const imageURL = imageUpload.secure_url
 
             await userModel.findByIdAndUpdate(userId, { image: imageURL })
+        }
+
+        // Refresh userData snapshot in all existing appointments so age, name, etc. stay current
+        const updatedUserData = await userModel.findById(userId).select('-password').lean()
+        if (updatedUserData) {
+            await appointmentModel.updateMany(
+                { userId },
+                { $set: { userData: updatedUserData } }
+            )
         }
 
         res.json({ success: true, message: 'Profile Updated' })
@@ -232,6 +241,11 @@ const bookAppointment = async (req, res) => {
     try {
 
         const { userId, docId, slotDate, slotTime } = req.body
+
+        if (!slotDate || !slotTime) {
+            return res.json({ success: false, message: 'Please select a date and time for your appointment.' })
+        }
+
         const docData = await doctorModel.findById(docId).select("-password")
 
         if (!docData.available) {
