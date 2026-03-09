@@ -221,9 +221,10 @@ const updateProfile = async (req, res) => {
         // Refresh userData snapshot in all existing appointments so age, name, etc. stay current
         const updatedUserData = await userModel.findById(userId).select('-password').lean()
         if (updatedUserData) {
+            const userDataSnapshot = JSON.parse(JSON.stringify(updatedUserData))
             await appointmentModel.updateMany(
-                { userId },
-                { $set: { userData: updatedUserData } }
+                { userId: String(userId) },
+                { $set: { userData: userDataSnapshot } }
             )
         }
 
@@ -302,11 +303,27 @@ const cancelAppointment = async (req, res) => {
     try {
 
         const { userId, appointmentId } = req.body
+
+        if (!appointmentId) {
+            return res.json({ success: false, message: 'Appointment ID is required' })
+        }
+
         const appointmentData = await appointmentModel.findById(appointmentId)
 
-        // verify appointment user 
-        if (appointmentData.userId !== userId) {
+        if (!appointmentData) {
+            return res.json({ success: false, message: 'Appointment not found' })
+        }
+
+        if (String(appointmentData.userId) !== String(userId)) {
             return res.json({ success: false, message: 'Unauthorized action' })
+        }
+
+        if (appointmentData.cancelled) {
+            return res.json({ success: false, message: 'Appointment is already cancelled' })
+        }
+
+        if (appointmentData.isCompleted) {
+            return res.json({ success: false, message: 'Cannot cancel a completed appointment' })
         }
 
         await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })

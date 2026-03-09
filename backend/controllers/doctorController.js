@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
+import userModel from "../models/userModel.js";
 
 // Doctor login
 const loginDoctor = async (req, res) => {
@@ -26,12 +27,19 @@ const loginDoctor = async (req, res) => {
   }
 };
 
-// Get doctor's appointments
+// Get doctor's appointments (enrich userData with current user profile for up-to-date age, name, etc.)
 const appointmentsDoctor = async (req, res) => {
   try {
     const docId = req.user.id;
-    const appointments = await appointmentModel.find({ docId });
-    res.json({ success: true, appointments });
+    const appointments = await appointmentModel.find({ docId }).lean();
+    const enrichedAppointments = await Promise.all(appointments.map(async (apt) => {
+      const currentUser = await userModel.findById(apt.userId).select('-password').lean();
+      return {
+        ...apt,
+        userData: currentUser ? { ...apt.userData, ...currentUser } : apt.userData
+      };
+    }));
+    res.json({ success: true, appointments: enrichedAppointments });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: error.message });
@@ -146,25 +154,34 @@ const updateDoctorProfile = async (req, res) => {
 };
 
 
-// Get dashboard data
+// Get dashboard data (enrich latestAppointments with current user profile for age)
 const doctorDashboard = async (req, res) => {
   try {
     const docId = req.user.id;
-    const appointments = await appointmentModel.find({ docId });
+    const appointments = await appointmentModel.find({ docId }).lean();
 
     let earnings = 0;
     const patientSet = new Set();
 
     appointments.forEach((a) => {
       if (a.isCompleted || a.payment) earnings += a.amount;
-      patientSet.add(a.userId.toString());
+      patientSet.add(String(a.userId));
     });
+
+    const latest = [...appointments].reverse().slice(0, 5);
+    const latestAppointments = await Promise.all(latest.map(async (apt) => {
+      const currentUser = await userModel.findById(apt.userId).select('-password').lean();
+      return {
+        ...apt,
+        userData: currentUser ? { ...apt.userData, ...currentUser } : apt.userData
+      };
+    }));
 
     const dashData = {
       earnings,
       appointments: appointments.length,
       patients: patientSet.size,
-      latestAppointments: appointments.reverse().slice(0, 5),
+      latestAppointments,
     };
 
     res.json({ success: true, dashData });

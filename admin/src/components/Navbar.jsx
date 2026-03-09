@@ -17,7 +17,7 @@ const Navbar = ({ onMenuClick }) => {
     aToken && localStorage.removeItem('aToken')
   }
 
-  const userPanelUrl = import.meta.env.DEV ? 'http://localhost:5173' : 'https://appointy-roan.vercel.app/'
+  const userPanelUrl = import.meta.env.DEV ? 'http://localhost:5173' : 'https://medislot-tau.vercel.app/'
 
   const isOnDashboard =
     location.pathname === '/admin-dashboard' ||

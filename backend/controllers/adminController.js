@@ -191,40 +191,50 @@ const allDoctors = async (req, res) => {
     }
 }
 
-// API to get all appointments list
+// API to get all appointments list (enrich userData with current user profile for up-to-date age, name, etc.)
 const appointmentsAdmin = async (req, res) => {
     try {
-
-        const appointments = await appointmentModel.find({})
-        res.json({ success: true, appointments })
-
+        const appointments = await appointmentModel.find({}).lean();
+        const enrichedAppointments = await Promise.all(appointments.map(async (apt) => {
+            const currentUser = await userModel.findById(apt.userId).select('-password').lean();
+            return {
+                ...apt,
+                userData: currentUser ? { ...apt.userData, ...currentUser } : apt.userData
+            };
+        }));
+        res.json({ success: true, appointments: enrichedAppointments });
     } catch (error) {
-        console.log(error)
-        res.json({ success: false, message: error.message })
+        console.log(error);
+        res.json({ success: false, message: error.message });
     }
-
 }
 
 // API to get dashboard data for admin panel
 const adminDashboard = async (req, res) => {
     try {
-
-        const doctors = await doctorModel.find({})
-        const users = await userModel.find({})
-        const appointments = await appointmentModel.find({})
+        const doctors = await doctorModel.find({});
+        const users = await userModel.find({});
+        const appointments = await appointmentModel.find({}).lean();
+        const latest = appointments.reverse().slice(0, 5);
+        const latestAppointments = await Promise.all(latest.map(async (apt) => {
+            const currentUser = await userModel.findById(apt.userId).select('-password').lean();
+            return {
+                ...apt,
+                userData: currentUser ? { ...apt.userData, ...currentUser } : apt.userData
+            };
+        }));
 
         const dashData = {
             doctors: doctors.length,
             appointments: appointments.length,
             patients: users.length,
-            latestAppointments: appointments.reverse().slice(0,5)
-        }
+            latestAppointments
+        };
 
-        res.json({ success: true, dashData })
-
+        res.json({ success: true, dashData });
     } catch (error) {
-        console.log(error)
-        res.json({ success: false, message: error.message })
+        console.log(error);
+        res.json({ success: false, message: error.message });
     }
 }
 

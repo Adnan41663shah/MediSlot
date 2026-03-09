@@ -23,7 +23,7 @@ const DoctorsList = () => {
     if (aToken) {
       getAllDoctors()
     }
-  }, [aToken])
+  }, [aToken, getAllDoctors])
 
   const handleDelete = async (item) => {
     if (deleteConfirm === item._id) {
@@ -42,32 +42,65 @@ const DoctorsList = () => {
   }
 
   return (
-    <div className='p-4 sm:p-6 lg:p-8 max-h-[90vh] overflow-y-auto'>
+    <div className='p-4 sm:p-6 lg:p-8'>
       <h1 className='text-xl sm:text-2xl font-bold text-text-primary mb-4 sm:mb-6'>All Doctors</h1>
-      <div className='grid grid-cols-auto gap-6'>
-        {doctors.map((item, index) => (
-          <div className='card overflow-hidden max-w-56 group' key={item._id}>
-            <div className='aspect-[4/3] bg-primary-muted overflow-hidden'>
-              <img className='w-full h-full object-cover group-hover:scale-105 transition-transform duration-500' src={item.image} alt={item.name} />
-            </div>
-            <div className='p-4'>
-              <p className='font-semibold text-text-primary'>{item.name}</p>
-              <p className='text-text-secondary text-sm'>{item.speciality}</p>
-              <label className={`mt-3 flex items-center gap-2 text-sm ${availabilityId === item._id ? 'cursor-wait opacity-70' : 'cursor-pointer'}`}>
-                <input onChange={() => handleAvailabilityChange(item._id)} type="checkbox" checked={item.available} disabled={!!availabilityId} className='rounded border-stone-300 text-primary focus:ring-primary disabled:cursor-not-allowed' />
-                <span className='text-text-muted'>{availabilityId === item._id ? 'Updating...' : 'Available'}</span>
-              </label>
-              <div className='flex gap-2 mt-4'>
-                <button onClick={() => navigate(`/edit-doctor/${item._id}`)} className='flex-1 px-3 py-2 rounded-lg border border-stone-200 text-sm font-medium text-text-secondary hover:bg-primary-muted hover:text-primary hover:border-primary/30 transition-colors'>
-                  Edit
-                </button>
-                <button onClick={() => handleDelete(item)} disabled={!!deletingId} className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${deleteConfirm === item._id ? 'bg-red-500 text-white hover:bg-red-600' : 'border border-red-200 text-red-600 hover:bg-red-50'}`}>
-                  {deletingId === item._id ? 'Deleting...' : deleteConfirm === item._id ? 'Confirm Delete' : 'Delete'}
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+      <div className='card overflow-hidden'>
+        <div className='overflow-x-auto max-h-[85vh] overflow-y-auto'>
+          <table className='w-full min-w-[500px] border-collapse'>
+            <thead className='sticky top-0 bg-stone-50 z-10'>
+              <tr>
+                <th className='text-left py-4 px-4 text-text-muted text-xs font-semibold uppercase tracking-wider w-12'>sr. no</th>
+                <th className='text-left py-4 px-4 text-text-muted text-xs font-semibold uppercase tracking-wider'>Doctor</th>
+                <th className='text-left py-4 px-4 text-text-muted text-xs font-semibold uppercase tracking-wider'>Speciality</th>
+                <th className='text-left py-4 px-4 text-text-muted text-xs font-semibold uppercase tracking-wider'>Available</th>
+                <th className='text-left py-4 px-4 text-text-muted text-xs font-semibold uppercase tracking-wider'>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {doctors.map((item, index) => (
+                <tr key={item._id} className='border-t border-stone-100 hover:bg-stone-50/50 transition-colors'>
+                  <td className='py-4 px-4 text-text-secondary text-sm'>{index + 1}</td>
+                  <td className='py-4 px-4'>
+                    <div className='flex items-center gap-3'>
+                      <img className='w-12 h-12 rounded-xl object-cover bg-primary-muted flex-shrink-0' src={item.image} alt={item.name} />
+                      <span className='font-medium text-text-primary'>{item.name}</span>
+                    </div>
+                  </td>
+                  <td className='py-4 px-4 text-text-secondary text-sm'>{item.speciality}</td>
+                  <td className='py-4 px-4'>
+                    <label className={`flex items-center gap-2 text-sm ${availabilityId === item._id ? 'cursor-wait opacity-70' : 'cursor-pointer'}`}>
+                      <input
+                        onChange={() => handleAvailabilityChange(item._id)}
+                        type='checkbox'
+                        checked={item.available}
+                        disabled={!!availabilityId}
+                        className='rounded border-stone-300 text-primary focus:ring-primary disabled:cursor-not-allowed'
+                      />
+                      <span className='text-text-muted'>{availabilityId === item._id ? 'Updating...' : item.available ? 'Yes' : 'No'}</span>
+                    </label>
+                  </td>
+                  <td className='py-4 px-4'>
+                    <div className='flex gap-2'>
+                      <button
+                        onClick={() => navigate(`/edit-doctor/${item._id}`)}
+                        className='px-3 py-2 rounded-lg border border-stone-200 text-sm font-medium text-text-secondary hover:bg-primary-muted hover:text-primary hover:border-primary/30 transition-colors'
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item)}
+                        disabled={!!deletingId}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${deleteConfirm === item._id ? 'bg-red-500 text-white hover:bg-red-600' : 'border border-red-200 text-red-600 hover:bg-red-50'}`}
+                      >
+                        {deletingId === item._id ? 'Deleting...' : deleteConfirm === item._id ? 'Confirm Delete' : 'Delete'}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )

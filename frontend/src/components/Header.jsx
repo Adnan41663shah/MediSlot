@@ -14,9 +14,9 @@ const Header = () => {
                 <p className='text-white/90 text-base md:text-lg max-w-md font-medium'>
                     Skip the wait. Find verified doctors across 6 specialties, pick a time that fits your schedule, and get the care you deserve—without the hassle of phone calls.
                 </p>
-                <div className='flex flex-col sm:flex-row items-start gap-4'>
-                    <a href='#speciality' className='inline-flex items-center gap-2 bg-white text-primary font-semibold px-8 py-4 rounded-xl shadow-card hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300'>
-                        Explore Specialties <img className='w-4' src={assets.arrow_icon} alt="" />
+                <div className='flex flex-col sm:flex-row items-center gap-4'>
+                    <a href='#speciality' className='inline-flex items-center gap-2 bg-white text-primary font-semibold px-6 py-4 rounded-xl shadow-card hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300'>
+                        Explore Specialists <img className='w-4' src={assets.arrow_icon} alt="" />
                     </a>
                     <span className='flex items-center gap-2 text-white/80 text-sm'>
                         <img className='w-24 rounded-full' src={assets.group_profiles} alt="" />
